@@ -82,7 +82,7 @@ def get_kap_news(query: StockQuery):
         return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
     news_df = news_df.apply(lambda x: extract_and_save_announcement(x),axis=1)
     return {"symbol": query.symbol.upper(), "news": {"columns": news_df.columns.tolist(),
-    "data": news_df.to_dict(orient="records")
+    "data": news_df.fillna(0).to_dict(orient="records")
 }}
 
 # Test endpoint
