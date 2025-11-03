@@ -4,6 +4,7 @@ from typing import Dict
 import json
 import io
 import pandas as pd
+import requests
 from pypdf import PdfReader
 
 app = FastAPI(title="BIST Analiz GPT API")
