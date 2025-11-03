@@ -3,4 +3,4 @@ uvicorn
 pydantic
 pypdf
 pandas
-4028e4a140f2ed720140f37f139c01bc
+requests
