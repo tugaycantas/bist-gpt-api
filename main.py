@@ -66,14 +66,15 @@ def extract_and_save_announcement(series):
 # Fonksiyonlar
 @app.post("/get_stock_price")
 async def get_stock_price(request: Request):
-    data = await request.json()
-    symbol = data.get("symbol", "").upper()
-
-    price = stock_prices.get(symbol)
-    if price is None:
-        return {"symbol": symbol, "error": "Bilinmeyen hisse kodu"}
-
-    return {"symbol": symbol, "price": price}
+    symbol = await request.symbol
+    meta = yf.Ticker(symbol + ".IS")
+    data = meta.history(period="max")
+    return {
+        "symbol" : symbol,
+        "price" : data.iloc[-20:]["Close"],
+        "volume" : data.iloc[-20:]["Volume"]
+    }
+    
 @app.post("/get_kap_news")
 def get_kap_news(query: StockQuery):
     mkk_stock_id = mkk_id.loc[query.symbol.upper()].values[0]
