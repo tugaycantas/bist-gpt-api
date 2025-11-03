@@ -70,24 +70,34 @@ def extract_and_save_announcement(series):
 def get_stock_price(query: StockQuery):
     symbol = query.symbol.upper()
     meta = yf.Ticker(symbol + ".IS")
-    data = meta.history(period="max")
+    data = meta.history(period="1mo")
     return {
         "symbol" : symbol,
-        "price" : data.reset_index().iloc[-20:]["Close"].tolist(),
-        "volume" : data.reset_index().iloc[-20:]["Volume"].tolist(),
-        "date" : data.reset_index().iloc[-20:]["Date"].tolist()
+        "price" : data.reset_index()["Close"].tolist(),
+        "volume" : data.reset_index()["Volume"].tolist(),
+        "date" : data.reset_index()["Date"].tolist()
     }
     
 @app.post("/get_kap_news")
 def get_kap_news(query: StockQuery):
-    mkk_stock_id = mkk_id.loc[query.symbol.upper()].values[0]
-    news_df = pd.DataFrame(get_news_list(m_id=mkk_stock_id)[:5])
-    if news_df is None:
-        return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
-    news_df = news_df.apply(lambda x: extract_and_save_announcement(x),axis=1)
-    return {"symbol": query.symbol.upper(), "news": {"columns": news_df.columns.tolist(),
-    "data": news_df.fillna(0).to_dict(orient="records")
-}}
+    try:
+        mkk_stock_id = mkk_id.loc[query.symbol.upper()].values[0]
+        news_df = pd.DataFrame(get_news_list(m_id=mkk_stock_id)[:5])
+        if news_df is None:
+            return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
+        news_df = news_df.apply(lambda x: extract_and_save_announcement(x),axis=1)
+        return {"symbol": query.symbol.upper(), "news": {"columns": news_df.columns.tolist(),
+        "data": news_df.fillna(0).to_dict(orient="records")
+    }}
+    except:
+        mkk_stock_id = mkk_id.loc[query.symbol.upper()].values[0]
+        news_df = pd.DataFrame(get_news_list(m_id=mkk_stock_id)[:5])
+        if news_df is None:
+            return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
+        news_df = news_df.apply(lambda x: extract_and_save_announcement(x),axis=1)
+        return {"symbol": query.symbol.upper(), "news": {"columns": news_df.columns.tolist(),
+        "data": news_df.fillna(0).to_dict(orient="records")
+    }}
 
 # Test endpoint
 @app.get("/")
