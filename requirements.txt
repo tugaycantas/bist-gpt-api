@@ -4,3 +4,5 @@ pydantic
 pypdf
 pandas
 requests
+yfinance
+numpy
