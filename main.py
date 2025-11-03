@@ -23,11 +23,11 @@ kap_news = {
 
 # Fonksiyonlar
 @app.post("/get_stock_price")
-def get_stock_price(query: StockQuery):
-    price = stock_prices.get(query.symbol.upper(), None)
+def get_stock_price(symbol):
+    price = stock_prices[symbol]
     if price is None:
-        return {"symbol": query.symbol, "error": "Bilinmeyen hisse kodu"}
-    return {"symbol": query.symbol.upper(), "price": price}
+        return {"symbol": symbol, "error": "Bilinmeyen hisse kodu"}
+    return {"symbol": symbol.upper(), "price": price}
 
 @app.post("/get_kap_news")
 def get_kap_news(query: StockQuery):
