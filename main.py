@@ -1,8 +1,12 @@
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import Dict
+import json
+import io 
+from pypdf import PdfReader
 
 app = FastAPI(title="BIST Analiz GPT API")
+mkk_id = pd.read_csv("mkkOId.csv",index_col="Unnamed: 0")
 
 # Model sınıfı
 class StockQuery(BaseModel):
@@ -15,11 +19,46 @@ stock_prices = {
     "KRDMD": 14.2
 }
 
-kap_news = {
-    "THYAO": "THYAO 2025 3. çeyrek bilançosunu yayımladı: Net kâr 12.3 milyar TL.",
-    "ASELS": "ASELS yeni füze sistemleri ihracatı için anlaşma imzaladı.",
-    "KRDMD": "KRDMD üretim kapasitesini %20 artırmayı planlıyor."
-}
+def get_news_list(from_date = "2025-03-28", to_date="2025-12-27", m_id="4028e4a140ee35c70140ee4e93870038"):    
+    data = {
+        "fromDate": from_date, "toDate": to_date,
+        "year": "", "prd": "",
+        "term": "", "ruleType": "",
+        "bdkReview": "",
+        "disclosureClass": "",#"DG",
+        "index": "", "market": "",
+        "mkkMemberOidList": [m_id],
+        "inactiveMkkMemberOidList": [],
+        "bdkMemberOidList": [],
+        "mainSector": "", "sector": "",
+        "subSector": "", "memberType": "IGS", #"DDK",
+        "fromSrc": "false", "srcCategory": "",
+        "discIndex": []}
+    response = requests.post(url="https://www.kap.org.tr/tr/api/disclosure/members/byCriteria", json=data)
+    return json.loads(response.text)
+
+def extract_text_from_pdf_url(url):
+    response = requests.get(url)
+    response.raise_for_status()  # raise error if download fails
+
+    # 3️⃣ Read PDF from memory
+    pdf_file = io.BytesIO(response.content)
+
+    # 4️⃣ Extract text
+    reader = PdfReader(pdf_file)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text() + "\n"
+
+    return text  # print first 1000 chars
+
+
+def extract_and_save_announcement(series):
+    disclosure_id = series["disclosureIndex"]
+    url_kap = "https://www.kap.org.tr/tr/api/BildirimPdf/" + str(disclosure_id)
+    series["accountmentText"] = extract_text_from_pdf_url(url_kap)
+    time.sleep(2)
+    return series
 
 # Fonksiyonlar
 @app.post("/get_stock_price")
@@ -34,10 +73,14 @@ async def get_stock_price(request: Request):
     return {"symbol": symbol, "price": price}
 @app.post("/get_kap_news")
 def get_kap_news(query: StockQuery):
-    news = kap_news.get(query.symbol.upper(), None)
-    if news is None:
+    mkk_stock_id = mkk_id.loc[query.symbol.upper()]
+    news_df = pd.DataFrame(get_news_list(m_id=mkk_stock_id)[:5])
+    if news_df is None:
         return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
-    return {"symbol": query.symbol.upper(), "news": news}
+    news_df = news_df.apply(lambda x: extract_and_save_announcement(x),axis=1)
+    return {"symbol": query.symbol.upper(), "news": {"columns": news_df.columns.tolist(),
+    "data": news_df.to_dict(orient="records")
+}}
 
 # Test endpoint
 @app.get("/")
