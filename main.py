@@ -73,9 +73,9 @@ def get_stock_price(query: StockQuery):
     data = meta.history(period="max")
     return {
         "symbol" : symbol,
-        "price" : data.reset_index().iloc[-20:]["Close"],
-        "volume" : data.reset_index().iloc[-20:]["Volume"],
-        "date" : data.reset_index().iloc[-20:]["Date"]
+        "price" : data.reset_index().iloc[-20:]["Close"].tolist(),
+        "volume" : data.reset_index().iloc[-20:]["Volume"].tolist(),
+        "date" : data.reset_index().iloc[-20:]["Date"].tolist()
     }
     
 @app.post("/get_kap_news")
