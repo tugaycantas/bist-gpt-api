@@ -65,8 +65,8 @@ def extract_and_save_announcement(series):
 
 # Fonksiyonlar
 @app.post("/get_stock_price")
-async def get_stock_price(request: Request):
-    symbol = await request.symbol
+def get_stock_price(query: StockQuery):
+    symbol = query.symbol.upper()
     meta = yf.Ticker(symbol + ".IS")
     data = meta.history(period="max")
     return {
