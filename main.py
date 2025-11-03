@@ -74,7 +74,7 @@ async def get_stock_price(request: Request):
     return {"symbol": symbol, "price": price}
 @app.post("/get_kap_news")
 def get_kap_news(query: StockQuery):
-    mkk_stock_id = mkk_id.loc[query.symbol.upper()]
+    mkk_stock_id = mkk_id.loc[query.symbol.upper()].values[0]
     news_df = pd.DataFrame(get_news_list(m_id=mkk_stock_id)[:5])
     if news_df is None:
         return {"symbol": query.symbol, "error": "KAP haberi bulunamadı"}
