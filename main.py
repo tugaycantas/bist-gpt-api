@@ -2,7 +2,8 @@ from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from typing import Dict
 import json
-import io 
+import io
+import pandas as pd
 from pypdf import PdfReader
 
 app = FastAPI(title="BIST Analiz GPT API")
