@@ -6,6 +6,7 @@ import io
 import pandas as pd
 import requests
 from pypdf import PdfReader
+import time
 
 app = FastAPI(title="BIST Analiz GPT API")
 mkk_id = pd.read_csv("mkkOId.csv",index_col="Unnamed: 0")
